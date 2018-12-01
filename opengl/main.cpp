@@ -3,11 +3,15 @@
 #include "Shader.h"
 #include"stb_image.h"
 #include <iostream>
+#include <iostream>
+#include <filesystem>
+#include "Model.h"
+
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f;
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
-float yaw = 0;
+float yaw = -90;
 float pitch = 0;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -55,205 +59,74 @@ int main()
 
 	// build and compile our shader program
 	// ------------------------------------
-	Shader ourShader("shader_vs.txt","shader_fs.txt"); // you can name your shader files however you like
+	//Shader ourShader("shader_vs.txt","shader_fs.txt");
 
-	// set up vertex data (and buffer(s)) and configure vertex attributes
-	// ------------------------------------------------------------------
-	//float vertices[] = {
-	//	//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-	//		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
-	//		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
-	//		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
-	//		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
-	//};
+	Shader ourShader("model_loading_vs.txt", "model_loading_fs.txt");
 
-	//unsigned int indices[] = {
-	// 0, 1, 3, // first triangle
-	// 1, 2, 3  // second triangle
-	//};
-
-	float vertices[] = {
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-	// world space positions of our cubes
-	glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
-	unsigned int VBO, VAO,EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
-
-	//设置纹理一
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// 为当前绑定的纹理对象设置环绕、过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// 加载并生成纹理
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load("test.jpg", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	//设置纹理二
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	// 为当前绑定的纹理对象设置环绕、过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// 加载并生成纹理
-	unsigned char *data2 = stbi_load("test2.jpg", &width, &height, &nrChannels, 0);
-	if (data2)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data2);
-
-
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);*/
-	// position attribute
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//// color attribute
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	//glEnableVertexAttribArray(2);
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-	// glBindVertexArray(0);
-	 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-	glEnable(GL_DEPTH_TEST);
-	
-   
-	ourShader.use();
-	// render loop
+	// load models
 	// -----------
+	Model ourModel("nanosuit/nanosuit.obj");
+
+
 	while (!glfwWindowShouldClose(window))
 	{
-		// input
-		// -----
-		 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		glfwSetCursorPosCallback(window, mouse_callback);
-		processInput(window);
+		glfwSetCursorPosCallback(window, mouse_callback);   //鼠标回调函数
+		processInput(window);                               //键盘回调函数
 		
-		// render
-		// ------
+
+		// 设置背景颜色
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// render the triangle
+		// 着色器
 		ourShader.use();
-		ourShader.setInt("ourface", 3);
 
-		glm::mat4 projection = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);    //投影矩阵
+		glm::mat4 view = glm::mat4(1.0f);          //摄像机矩阵
+		glm::mat4 model = glm::mat4(1.0f);         //世界矩阵
 		
-		float radius = 10.0f;
-		/*float camX = sin(glfwGetTime()) * radius;
-		float camZ = cos(glfwGetTime()) * radius;
-		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		ourShader.setMat4("view", view);*/
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+		//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		//glm::mat4 view = camera.GetViewMatrix();
+		//ourShader.setMat4("projection", projection);
+		//ourShader.setMat4("view", view);
+		view = glm::lookAt(cameraPos, cameraFront + cameraPos, cameraUp);
 		ourShader.setMat4("view", view);
 		projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		ourShader.setMat4("projection", projection);
-		// render boxes
-		glBindVertexArray(VAO);
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			// calculate the model matrix for each object and pass it to shader before drawing
-			
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			ourShader.setMat4("model", model);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		ourShader.setMat4("model", model);
+
+		//绘制模型
+		ourModel.Draw(ourShader);
+		//float radius = 10.0f;
+		///*float camX = sin(glfwGetTime()) * radius;
+		//float camZ = cos(glfwGetTime()) * radius;
+		//view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//ourShader.setMat4("view", view);*/
+		//view = glm::lookAt(cameraPos, cameraFront + cameraPos, cameraUp);
+		//ourShader.setMat4("view", view);
+		//projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		//ourShader.setMat4("projection", projection);
+		//// render boxes
+		//glBindVertexArray(VAO);
+		//for (unsigned int i = 0; i < 10; i++)
+		//{
+		//	// calculate the model matrix for each object and pass it to shader before drawing
+		//	
+		//	model = glm::translate(model, cubePositions[i]);
+		//	float angle = 20.0f * i;
+		//	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		//	ourShader.setMat4("model", model);
+
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//}
 
 		/*glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
@@ -265,8 +138,8 @@ int main()
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	/*glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);*/
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
@@ -315,7 +188,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
-
+	std::cout << "俯仰角：" << pitch << "  偏转角：" << yaw << std::endl;
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	front.y = sin(glm::radians(pitch));
