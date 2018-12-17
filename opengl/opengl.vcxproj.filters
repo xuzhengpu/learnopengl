@@ -45,7 +45,15 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shader_fs.txt" />
-    <Text Include="shader_vs.txt" />
+    <Text Include="shader_fs.shader" />
+    <Text Include="shader_vs.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="light_vs.shader">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="light_fs.shader">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
